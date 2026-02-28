@@ -54,7 +54,7 @@ def build_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--model",
-        default=os.getenv("VLLM_MODEL", "/mnt/m/hf_models/Qwen3-4B"),
+        default=os.getenv("VLLM_MODEL", "/mnt/m/hf_models/Qwen3-4B-Instruct-2507"),
         help="HF model name or local model directory. Env: VLLM_MODEL",
     )
     parser.add_argument(
@@ -78,6 +78,12 @@ def build_args() -> argparse.Namespace:
         type=int,
         default=int(os.getenv("VLLM_MAX_MODEL_LEN", "0")),
         help="Override max context length. Env: VLLM_MAX_MODEL_LEN (0 disables)",
+    )
+    parser.add_argument(
+        "--gpu-memory-utilization",
+        type=float,
+        default=float(os.getenv("VLLM_GPU_MEMORY_UTILIZATION", "0")),
+        help="Fraction of GPU memory to use. Env: VLLM_GPU_MEMORY_UTILIZATION (0 disables)",
     )
     parser.add_argument(
         "--tensor-parallel-size",
@@ -158,6 +164,9 @@ def main() -> int:
 
     if args.max_model_len and args.max_model_len > 0:
         cmd += ["--max-model-len", str(args.max_model_len)]
+
+    if args.gpu_memory_utilization and args.gpu_memory_utilization > 0:
+        cmd += ["--gpu-memory-utilization", str(args.gpu_memory_utilization)]
 
     if args.reasoning_parser:
         cmd += ["--reasoning-parser", args.reasoning_parser]

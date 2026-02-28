@@ -105,3 +105,19 @@ uv run /root/workspace/python_project/vllm_server/run_vllm_server.py --model-nam
 - `OPENAI_BASE_URL`：`http://<host>:<port>/v1`
 - `OPENAI_API_KEY`：本地 vLLM 通常可填 `EMPTY`
 - `model`：使用 `--served-model-name` 的值；如果你用 `--model-name` 启动且未显式指定，默认就是该模型名
+
+### KV cache设置运行
+```sh
+uv run /root/workspace/python_project/vllm_server/run_vllm_server.py \
+  --model-name Qwen3-4B-Instruct-2507 \
+  --host 0.0.0.0 --port 58000 \
+  --max-model-len 131072 \
+  --gpu-memory-utilization 0.95
+
+  uv run /root/workspace/python_project/vllm_server/run_vllm_server.py \
+  --model-name Qwen3-4B-Instruct-2507 \
+  --host 0.0.0.0 --port 58000 \
+  --max-model-len 32768 \
+  --gpu-memory-utilization 0.80
+  
+```
