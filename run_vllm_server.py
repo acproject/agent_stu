@@ -54,7 +54,7 @@ def build_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--model",
-        default=os.getenv("VLLM_MODEL", "/mnt/m/hf_models/Qwen3-4B-Instruct-2507"),
+        default=os.getenv("VLLM_MODEL", "/home/acproject/hf_models/Qwen3.5-122B-A10B-GPTQ-Int4"),
         help="HF model name or local model directory. Env: VLLM_MODEL",
     )
     parser.add_argument(
@@ -76,7 +76,7 @@ def build_args() -> argparse.Namespace:
     parser.add_argument(
         "--max-model-len",
         type=int,
-        default=int(os.getenv("VLLM_MAX_MODEL_LEN", "0")),
+        default=int(os.getenv("VLLM_MAX_MODEL_LEN", "262144")),
         help="Override max context length. Env: VLLM_MAX_MODEL_LEN (0 disables)",
     )
     parser.add_argument(
@@ -88,19 +88,34 @@ def build_args() -> argparse.Namespace:
     parser.add_argument(
         "--tensor-parallel-size",
         type=int,
-        default=int(os.getenv("VLLM_TP_SIZE", "1")),
+        default=int(os.getenv("VLLM_TP_SIZE", "4")),
         help="Tensor parallel size. Env: VLLM_TP_SIZE",
     )
     parser.add_argument(
-        "--enable-tool-calling",
-        action="store_true",
-        default=os.getenv("VLLM_ENABLE_TOOL_CALLING", "").lower() in {"1", "true", "yes"},
-        help="Enable auto tool choice & tool call parser (qwen3_coder). Env: VLLM_ENABLE_TOOL_CALLING",
+        "--reasoning-parser",
+        default=os.getenv("VLLM_REASONING_PARSER", "qwen3"),
+        help="Set --reasoning-parser (e.g. qwen3). Env: VLLM_REASONING_PARSER",
     )
     parser.add_argument(
-        "--reasoning-parser",
-        default=os.getenv("VLLM_REASONING_PARSER", ""),
-        help="Set --reasoning-parser (e.g. qwen3). Env: VLLM_REASONING_PARSER",
+        "--enable-auto-tool-choice",
+        action="store_true",
+        default=os.getenv("VLLM_ENABLE_AUTO_TOOL_CHOICE", "").lower() in {"1", "true", "yes"},
+        help="Enable auto tool choice. Env: VLLM_ENABLE_AUTO_TOOL_CHOICE",
+    )
+    parser.add_argument(
+        "--tool-call-parser",
+        default=os.getenv("VLLM_TOOL_CALL_PARSER", "qwen3_coder"),
+        help="Tool call parser name. Env: VLLM_TOOL_CALL_PARSER",
+    )
+    parser.add_argument(
+        "--quantization",
+        default=os.getenv("VLLM_QUANTIZATION", "moe_wna16"),
+        help="Quantization method. Env: VLLM_QUANTIZATION",
+    )
+    parser.add_argument(
+        "--distributed-executor-backend",
+        default=os.getenv("VLLM_DISTRIBUTED_EXECUTOR_BACKEND", "ray"),
+        help="Distributed executor backend. Env: VLLM_DISTRIBUTED_EXECUTOR_BACKEND",
     )
     parser.add_argument(
         "--language-model-only",
@@ -174,8 +189,16 @@ def main() -> int:
     if args.language_model_only:
         cmd += ["--language-model-only"]
 
-    if args.enable_tool_calling:
-        cmd += ["--enable-auto-tool-choice", "--tool-call-parser", "qwen3_coder"]
+    if args.enable_auto_tool_choice:
+        cmd += ["--enable-auto-tool-choice"]
+    if args.tool_call_parser:
+        cmd += ["--tool-call-parser", args.tool_call_parser]
+
+    if args.quantization:
+        cmd += ["--quantization", args.quantization]
+
+    if args.distributed_executor_backend:
+        cmd += ["--distributed-executor-backend", args.distributed_executor_backend]
 
     if args.print_cmd:
         print(shlex.join(cmd))
